@@ -12,7 +12,7 @@ def submit(model_name):
     model_path = os.path.join('models', model_name)
     model = tf.keras.models.load_model(model_path + '.h5')
     
-    predictions = model.predict(data)
+    predictions = model.predict(data).argmax(axis=-1)
     
     with open(f'./datasets/submission/{model_name}.csv', 'w', newline='') as csvfile:
         fieldnames = ['ImageId', 'Label']
@@ -21,3 +21,5 @@ def submit(model_name):
         
         for idx, label in enumerate(predictions):
             writer.writerow({'ImageId':idx+1, 'Label':label})
+            
+submit('hi')
