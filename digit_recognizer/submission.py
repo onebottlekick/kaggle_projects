@@ -32,8 +32,10 @@ def submit(model_name, online, message):
             
     if online:
         os.system(f'kaggle competitions submit -c digit-recognizer -f {submit_file_path} -m "{message}"')
-    
-    print()
+        print()
+        os.system('kaggle competitions submissions digit-recognizer')
+        print()
+
     print('Done!')  
     
         
