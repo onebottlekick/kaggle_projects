@@ -37,5 +37,5 @@ history = model.fit(X_train, y_train, batch_size=32, validation_data=(X_val, y_v
 if args.save_model:
     os.makedirs('models', exist_ok=True)
     model.save(f'models/{model.name}.h5')
-    
+model.evaluate(X_test, y_test)
 plot_history(history, fig_name=model.name, save=args.save_plot)
