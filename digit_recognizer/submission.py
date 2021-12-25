@@ -2,11 +2,15 @@ import argparse
 import csv
 import os
 import pickle
-import textwrap
 
 import tensorflow as tf
 
-def submit(model_name, online, path, verbose):
+from tqdm import tqdm
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
+
+def submit(model_name, online, name,  message):
+    print('-'*20 + 'making submission' + '-'*20)
     with open('datasets/submission_data', 'rb') as f:
         data = pickle.load(f)
     data = data.reshape(-1, 28, 28, 1)
@@ -16,30 +20,28 @@ def submit(model_name, online, path, verbose):
     
     predictions = model.predict(data).argmax(axis=-1)
     
-    submit_file_path = os.path.join(path, model_name + '.csv')
+    submit_file_path = os.path.join('datasets/submission/', name + '.csv')
     with open(submit_file_path, 'w', newline='') as csvfile:
         fieldnames = ['ImageId', 'Label']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
         
-        for idx, label in enumerate(predictions):
+        for idx, label in enumerate(tqdm(predictions, desc='making csv file')):
             writer.writerow({'ImageId':idx+1, 'Label':label})
             
     if online:
-        raise NotImplementedError
-            
+        os.system(f'kaggle competitions submit -c digit-recognizer -f {submit_file_path} -m "{message}"')
+    
+    print()
+    print('Done!')  
+    
+        
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(
-        description = 'Kaggle auto submit',
-        # formatter_class = argparse.RawDescriptionHelpFormatter,
-        # epilog = textwrap.dedent('''Example:
-        #                         submission.py -m <model_name> -o <boolean> -p <submission_save_path> -v <boolean>
-        #                         ''')
-        )
-    parser.add_argument('--model', type=str, default='model', help='model name')
+    parser = argparse.ArgumentParser(description = 'Kaggle auto submit')
+    parser.add_argument('--model', type=str, help='model name', required=True)
     parser.add_argument('--online', type=bool, default=False, help='submit to kaggle.com')
-    parser.add_argument('--path', type=str, default='datasets/submission/', help='submission file path')
-    parser.add_argument('--verbose', type=bool, default=False, help='show status')
+    parser.add_argument('--name', type=str, default='submission', help='submission file name')
+    parser.add_argument('--message', type=str, default='submission', help='submission message')
     
     args = parser.parse_args()
-    submit(args.model, args.online, args.path, args.verbose)
+    submit(args.model, args.online, args.name, args.message)
